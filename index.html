@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JeepPay - Smart Jeepney System</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f2f6f3;
+    color: #24352b;
+}
+
+header {
+    background: #176b42;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 30px;
+}
+
+header p {
+    margin-bottom: 0;
+}
+
+.container {
+    max-width: 850px;
+    margin: 20px auto;
+    padding: 15px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px #00000012;
+}
+
+h2, h3 {
+    color: #176b42;
+}
+
+button {
+    background: #176b42;
+    color: white;
+    border: none;
+    padding: 12px 17px;
+    border-radius: 7px;
+    cursor: pointer;
+    margin: 5px 3px;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #105332;
+}
+
+.secondary {
+    background: #68776d;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin: 7px 0 12px;
+    border: 1px solid #ccc;
+    border-radius: 7px;
+}
+
+.hidden {
+    display: none;
+}
+
+.balance {
+    font-size: 30px;
+    font-weight: bold;
+    color: #176b42;
+}
+
+.status {
+    padding: 10px;
+    background: #e7f5eb;
+    border-radius: 7px;
+    margin: 10px 0;
+}
+
+.jeep-box {
+    border: 1px solid #d8e7dc;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 12px;
+    background: #f8fcf9;
+}
+
+.jeep-icon {
+    font-size: 35px;
+}
+
+.small {
+    color: #68776d;
+    font-size: 13px;
+}
+
+.history-item {
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+footer {
+    text-align: center;
+    color: #68776d;
+    padding: 20px;
+    font-size: 12px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🚐 JeepPay</h1>
+    <p>Smart Jeepney Fare Management and Tracking System</p>
+</header>
+
+<div class="container">
+
+<!-- ROLE SELECTION -->
+<div id="loginSection" class="card">
+    <h2>Welcome to JeepPay!</h2>
+    <p>Select your user type to continue.</p>
+
+    <button onclick="selectRole('passenger')">
+        Passenger
+    </button>
+
+    <button onclick="selectRole('driver')">
+        Driver
+    </button>
+</div>
+
+
+<!-- PASSENGER DASHBOARD -->
+<div id="passengerDashboard" class="hidden">
+
+    <div class="card">
+        <h2>Passenger Dashboard</h2>
+        <p>Welcome, <strong id="passengerName">Passenger</strong>!</p>
+
+        <label>Passenger ID</label>
+        <input type="text" id="passengerID"
+               value="PASSENGER-001">
+
+        <h3>Available Balance</h3>
+        <div class="balance" id="balanceDisplay">₱150.00</div>
+    </div>
+
+
+    <!-- LOAD MONEY -->
+    <div class="card">
+        <h3>💰 Load Money</h3>
+        <p>Add demonstration funds to your JeepPay account.</p>
+
+        <input type="number" id="loadAmount"
+               placeholder="Enter amount" min="1">
+
+        <button onclick="loadMoney()">Load Balance</button>
+
+        <p class="small">
+            Note: This is a simulated loading feature.
+            No actual money will be transferred.
+        </p>
+    </div>
+
+
+    <!-- SIMULATED CARD TAP -->
+    <div class="card">
+        <h3>💳 JeepPay Card</h3>
+
+        <div class="status" id="tripStatus">
+            No active trip. Tap your card to start a trip.
+        </div>
+
+        <button onclick="tapCard()">
+            📲 Simulate Card Tap
+        </button>
+
+        <p class="small">
+            This button simulates NFC card scanning.
+            Actual NFC hardware is not connected.
+        </p>
+    </div>
+
+
+    <!-- DISTANCE AND FARE -->
+    <div class="card">
+        <h3>📍 Trip Information</h3>
+
+        <label>Distance Travelled (Kilometers)</label>
+
+        <input type="number" id="distanceInput"
+               placeholder="Enter distance in kilometers"
+               min="0" step="0.1">
+
+        <p class="small">
+            For prototype testing, enter the travel distance
+            before ending your trip.
+        </p>
+
+        <p>Fare Rate: <strong>₱2.00 per kilometer</strong></p>
+
+        <button onclick="endTrip()">End Trip and Calculate Fare</button>
+
+        <div id="fareResult" class="status hidden"></div>
+    </div>
+
+
+    <!-- NEXT JEEPNEY FEATURE -->
+    <div class="card">
+        <h3>🚌 Next Available Jeepney</h3>
+
+        <p>
+            Check the next simulated jeepney available
+            on your selected route.
+        </p>
+
+        <label>Select Route</label>
+
+        <select id="routeSelect" onchange="updateJeepney()">
+            <option value="San Fernando - Bauang">
+                San Fernando - Bauang
+            </option>
+
+            <option value="San Fernando - Bacnotan">
+                San Fernando - Bacnotan
+            </option>
+
+            <option value="San Fernando - San Juan">
+                San Fernando - San Juan
+            </option>
+        </select>
+
+        <div class="jeep-box">
+            <div class="jeep-icon">🚐</div>
+
+            <h3 id="jeepNumber">Jeepney #001</h3>
+
+            <p>
+                Route:
+                <strong id="jeepRoute">
+                    San Fernando - Bauang
+                </strong>
+            </p>
+
+            <p>
+                Current Location:
+                <strong id="jeepLocation">Near your stop</strong>
+            </p>
+
+            <p>
+                Estimated Arrival:
+                <strong id="jeepArrival">3 minutes</strong>
+            </p>
+
+            <div class="status">
+                Status:
+                <strong id="jeepStatus">Approaching</strong>
+            </div>
+
+            <button onclick="simulateNextJeep()">
+                Refresh Jeepney Status
+            </button>
+        </div>
+
+        <p class="small">
+            Note: Jeepney locations and arrival times are
+            simulated for demonstration purposes only.
+            This feature does not use live GPS tracking.
+        </p>
+    </div>
+
+
+    <!-- PASSENGER HISTORY -->
+    <div class="card">
+        <h3>📋 Transaction History</h3>
+        <div id="passengerHistory">
+            No transactions yet.
+        </div>
+    </div>
+
+    <button class="secondary" onclick="logout()">
+        Log Out
+    </button>
+
+</div>
+
+
+<!-- DRIVER DASHBOARD -->
+<div id="driverDashboard" class="hidden">
+
+    <div class="card">
+        <h2>Driver Dashboard</h2>
+        <p>Welcome, Driver!</p>
+
+        <div class="status">
+            JeepPay Driver Monitoring System
+        </div>
+    </div>
+
+
+    <!-- DRIVER NOTIFICATIONS -->
+    <div class="card">
+        <h3>🔔 Payment Notifications</h3>
+
+        <div id="driverNotifications">
+            No passenger transactions yet.
+        </div>
+    </div>
+
+
+    <!-- DRIVER HISTORY -->
+    <div class="card">
+        <h3>📋 Passenger Transaction Records</h3>
+
+        <div id="driverHistory">
+            No records available.
+        </div>
+    </div>
+
+    <button class="secondary" onclick="logout()">
+        Log Out
+    </button>
+
+</div>
+
+</div>
+
+<footer>
+    JeepPay Software Prototype | For Academic Demonstration Only
+</footer>
+
+
+<script>
+
+// ===============================
+// SYSTEM VARIABLES
+// ===============================
+
+let balance = 150;
+let tripActive = false;
+let tripStartTime = null;
+let currentPassenger = "PASSENGER-001";
+
+let transactions = [];
+
+let fareRate = 2.00;
+
+
+// Simulated jeepney information
+let jeepneyData = {
+    "San Fernando - Bauang": {
+        number: "Jeepney #001",
+        locations: [
+            "Bauang Terminal",
+            "Near Bauang Market",
+            "Along National Highway",
+            "Approaching your stop",
+            "Near your stop"
+        ],
+        arrivals: [12, 9, 6, 3, 1],
+        statuses: [
+            "On the Way",
+            "Moving",
+            "Approaching",
+            "Near You",
+            "Arriving"
+        ]
+    },
+
+    "San Fernando - Bacnotan": {
+        number: "Jeepney #002",
+        locations: [
+            "San Fernando Terminal",
+            "Near San Juan",
+            "Along Bacnotan Road",
+            "Approaching your stop",
+            "Near your stop"
+        ],
+        arrivals: [15, 11, 7, 3, 1],
+        statuses: [
+            "On the Way",
+            "Moving",
+            "Approaching",
+            "Near You",
+            "Arriving"
+        ]
+    },
+
+    "San Fernando - San Juan": {
+        number: "Jeepney #003",
+        locations: [
+            "San Fernando Terminal",
+            "Near the City Center",
+            "Along the Highway",
+            "Approaching your stop",
+            "Near your stop"
+        ],
+        arrivals: [10, 8, 5, 2, 1],
+        statuses: [
+            "On the Way",
+            "Moving",
+            "Approaching",
+            "Near You",
+            "Arriving"
+        ]
+    }
+};
+
+let jeepneyStep = 0;
+
+
+// ===============================
+// ROLE SELECTION
+// ===============================
+
+function selectRole(role) {
+
+    document.getElementById("loginSection").classList.add("hidden");
+
+    if (role === "passenger") {
+        document.getElementById("passengerDashboard")
+            .classList.remove("hidden");
+
+        updateBalance();
+        updateJeepney();
+
+    } else {
+        document.getElementById("driverDashboard")
+            .classList.remove("hidden");
+
+        updateDriverDashboard();
+    }
+}
+
+
+// ===============================
+// LOG OUT
+// ===============================
+
+function logout() {
+
+    document.getElementById("passengerDashboard")
+        .classList.add("hidden");
+
+    document.getElementById("driverDashboard")
+        .classList.add("hidden");
+
+    document.getElementById("loginSection")
+        .classList.remove("hidden");
+}
+
+
+// ===============================
+// BALANCE DISPLAY
+// ===============================
+
+function updateBalance() {
+
+    document.getElementById("balanceDisplay")
+        .textContent = "₱" + balance.toFixed(2);
+}
+
+
+// ===============================
+// LOAD MONEY
+// ===============================
+
+function loadMoney() {
+
+    let amount = Number(
+        document.getElementById("loadAmount").value
+    );
+
+    if (!amount || amount <= 0) {
+        alert("Please enter a valid loading amount.");
+        return;
+    }
+
+    balance += amount;
+
+    updateBalance();
+
+    addTransaction(
+        "Account Loading",
+        amount,
+        "Successful"
+    );
+
+    document.getElementById("loadAmount").value = "";
+
+    alert("Successfully added ₱" + amount.toFixed(2) +
+          " to your demonstration balance!");
+}
+
+
+// ===============================
+// SIMULATED CARD TAP
+// ===============================
+
+function tapCard() {
+
+    currentPassenger =
+        document.getElementById("passengerID").value.trim();
+
+    if (!currentPassenger) {
+        alert("Please enter your Passenger ID.");
+        return;
+    }
+
+    if (!tripActive) {
+
+        tripActive = true;
+
+        tripStartTime = new Date();
+
+        document.getElementById("tripStatus").innerHTML =
+            "🟢 Trip started! Your journey is now being recorded.";
+
+        document.getElementById("fareResult")
+            .classList.add("hidden");
+
+        alert("Card successfully tapped! Trip started.");
+
+    } else {
+
+        alert("Your trip is already active. Please end your trip first.");
+    }
+}
+
+
+// ===============================
+// END TRIP AND CALCULATE FARE
+// ===============================
+
+function endTrip() {
+
+    if (!tripActive) {
+        alert("Please start your trip first by tapping your card.");
+        return;
+    }
+
+    let distance = Number(
+        document.getElementById("distanceInput").value
+    );
+
+    if (!distance || distance <= 0) {
+        alert("Please enter a valid travel distance.");
+        return;
+    }
+
+    let fare = distance * fareRate;
+
+    let paymentStatus;
+
+    if (balance >= fare) {
+
+        balance -= fare;
+
+        paymentStatus = "Paid";
+
+        alert("Trip completed!\nFare: ₱" + fare.toFixed(2));
+
+    } else {
+
+        paymentStatus = "Insufficient Balance";
+
+        alert("Insufficient balance!\nPlease load your account.");
+
+    }
+
+    updateBalance();
+
+    addTransaction(
+        "Jeepney Trip (" + distance.toFixed(2) + " km)",
+        fare,
+        paymentStatus
+    );
+
+    document.getElementById("fareResult").classList.remove("hidden");
+
+    document.getElementById("fareResult").innerHTML =
+        "<strong>Trip Summary</strong><br>" +
+        "Passenger ID: " + escapeHTML(currentPassenger) + "<br>" +
+        "Distance: " + distance.toFixed(2) + " km<br>" +
+        "Fare: ₱" + fare.toFixed(2) + "<br>" +
+        "Payment Status: " + paymentStatus;
+
+    document.getElementById("tripStatus").innerHTML =
+        "Trip completed. You may start another trip.";
+
+    document.getElementById("distanceInput").value = "";
+
+    tripActive = false;
+    tripStartTime = null;
+}
+
+
+// ===============================
+// TRANSACTION RECORDS
+// ===============================
+
+function addTransaction(description, amount, status) {
+
+    let transaction = {
+        passenger: currentPassenger,
+        description: description,
+        amount: amount,
+        status: status,
+        date: new Date().toLocaleString()
+    };
+
+    transactions.unshift(transaction);
+
+    updatePassengerHistory();
+    updateDriverDashboard();
+}
+
+
+// ===============================
+// PASSENGER HISTORY
+// ===============================
+
+function updatePassengerHistory() {
+
+    let history = document.getElementById("passengerHistory");
+
+    if (transactions.length === 0) {
+        history.innerHTML = "No transactions yet.";
+        return;
+    }
+
+    history.innerHTML = transactions.map(function(t) {
+
+        return `
+            <div class="history-item">
+                <strong>${escapeHTML(t.description)}</strong><br>
+                Amount: ₱${t.amount.toFixed(2)}<br>
+                Status: ${escapeHTML(t.status)}<br>
+                <span class="small">${escapeHTML(t.date)}</span>
+            </div>
+        `;
+
+    }).join("");
+}
+
+
+// ===============================
+// DRIVER DASHBOARD
+// ===============================
+
+function updateDriverDashboard() {
+
+    let notifications =
+        document.getElementById("driverNotifications");
+
+    let history =
+        document.getElementById("driverHistory");
+
+    if (!notifications || !history) return;
+
+    if (transactions.length === 0) {
+
+        notifications.innerHTML =
+            "No passenger transactions yet.";
+
+        history.innerHTML =
+            "No records available.";
+
+        return;
+    }
+
+    notifications.innerHTML = transactions.map(function(t) {
+
+        return `
+            <div class="history-item">
+                <strong>New Transaction</strong><br>
+                Passenger: ${escapeHTML(t.passenger)}<br>
+                Transaction: ${escapeHTML(t.description)}<br>
+                Amount: ₱${t.amount.toFixed(2)}<br>
+                Payment Status: ${escapeHTML(t.status)}
+            </div>
+        `;
+
+    }).join("");
+
+    history.innerHTML = transactions.map(function(t) {
+
+        return `
+            <div class="history-item">
+                Passenger ID: ${escapeHTML(t.passenger)}<br>
+                ${escapeHTML(t.description)}<br>
+                Amount: ₱${t.amount.toFixed(2)}<br>
+                Status: ${escapeHTML(t.status)}<br>
+                <span class="small">${escapeHTML(t.date)}</span>
+            </div>
+        `;
+
+    }).join("");
+}
+
+
+// ===============================
+// NEXT JEEPNEY FEATURE
+// ===============================
+
+function updateJeepney() {
+
+    let route = document.getElementById("routeSelect").value;
+
+    let jeep = jeepneyData[route];
+
+    jeepneyStep = 0;
+
+    document.getElementById("jeepNumber").textContent =
+        jeep.number;
+
+    document.getElementById("jeepRoute").textContent =
+        route;
+
+    showJeepneyStatus();
+}
+
+
+function showJeepneyStatus() {
+
+    let route = document.getElementById("routeSelect").value;
+
+    let jeep = jeepneyData[route];
+
+    document.getElementById("jeepLocation").textContent =
+        jeep.locations[jeepneyStep];
+
+    document.getElementById("jeepArrival").textContent =
+        jeep.arrivals[jeepneyStep] + " minutes";
+
+    document.getElementById("jeepStatus").textContent =
+        jeep.statuses[jeepneyStep];
+}
+
+
+function simulateNextJeep() {
+
+    let route = document.getElementById("routeSelect").value;
+
+    let jeep = jeepneyData[route];
+
+    jeepneyStep++;
+
+    if (jeepneyStep >= jeep.locations.length) {
+        jeepneyStep = 0;
+    }
+
+    showJeepneyStatus();
+}
+
+
+// ===============================
+// BASIC TEXT SAFETY
+// ===============================
+
+function escapeHTML(value) {
+
+    return String(value).replace(/[&<>"']/g, function(char) {
+
+        return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[char];
+
+    });
+}
+
+
+// ===============================
+// INITIAL DISPLAY
+// ===============================
+
+updateBalance();
+
+</script>
+
+</body>
+</html>
+
